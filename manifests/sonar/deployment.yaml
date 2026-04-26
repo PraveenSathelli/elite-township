@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarqube
+  namespace: praveensathelli11-dev
+  labels:
+    app: sonarqube
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sonarqube
+  template:
+    metadata:
+      labels:
+        app: sonarqube
+    spec:
+      containers:
+        - name: sonarqube
+          image: sonarqube:community
+          ports:
+            - containerPort: 9000
+
+          env:
+            - name: SONAR_JDBC_URL
+              value: jdbc:postgresql://postgresql-13:5432/sonarqube
+            - name: SONAR_JDBC_USERNAME
+              value: sonar
+            - name: SONAR_JDBC_PASSWORD
+              value: sonar
+
+          resources:
+            requests:
+              memory: "2Gi"
+            limits:
+              memory: "3Gi"
+
+          volumeMounts:
+            - name: sonar-pvc
+              mountPath: /opt/sonarqube/data
+            - name: sonar-pvc
+              mountPath: /opt/sonarqube/extensions
+            - name: sonar-pvc
+              mountPath: /opt/sonarqube/logs
+            - name: sonar-pvc
+              mountPath: /opt/sonarqube/temp
+
+      volumes:
+        - name: sonar-pvc
+          persistentVolumeClaim:
+            claimName: sonar-pvc
+
+      restartPolicy: Always
