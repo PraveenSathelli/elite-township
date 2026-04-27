@@ -32,5 +32,29 @@ pipeline {
                }
             }
         }
+         stage('Publish to Artifactory') {
+                    steps {
+                        script {
+                            def server = Artifactory.server('jfrog-cred')
+
+                            def rtMaven = Artifactory.newMavenBuild()
+                            rtMaven.tool = 'Maven-3'
+
+                            rtMaven.deployer(
+                                releaseRepo: 'libs-release-local',
+                                snapshotRepo: 'libs-snapshot-local',
+                                server: server
+                            )
+
+                            rtMaven.resolver(
+                                releaseRepo: 'libs-release',
+                                snapshotRepo: 'libs-snapshot',
+                                server: server
+                            )
+
+                            rtMaven.run pom: 'pom.xml', goals: 'clean deploy -DskipTests'
+                        }
+                    }
+                }
     }
 }
