@@ -3,7 +3,7 @@ pipeline {
 
     tools {
         maven 'Maven-3'
-        
+
     }
 
     stages {
@@ -16,7 +16,17 @@ pipeline {
                     url: 'https://github.com/PraveenSathelli/elite-township.git'
             }
         }
+        stage('Build') {
+            steps {
+                sh 'mvn clean compile'
+            }
+        }
 
+        stage('Unit Test') {
+            steps {
+                sh 'mvn test'
+            }
+        }
         stage('Build & Sonar Analysis') {
             steps {
                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
@@ -36,7 +46,7 @@ pipeline {
          stage('Publish to Artifactory') {
                     steps {
                         script {
-                            def server = Artifactory.server('jfrog-cred')
+                            def server = Artifactory.server('jfrog-config')
 
                             def rtMaven = Artifactory.newMavenBuild()
                             rtMaven.tool = 'Maven-3'
