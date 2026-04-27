@@ -18,13 +18,13 @@ pipeline {
         }
         stage('Build') {
             steps {
-                sh 'mvn clean compile'
+                   sh 'mvn clean compile -Dmaven.repo.local=/var/jenkins_home/.m2/repository'
             }
         }
 
         stage('Unit Test') {
             steps {
-                sh 'mvn test'
+                sh 'mvn test -Dmaven.repo.local=/var/jenkins_home/.m2/repository'
             }
         }
         stage('Build & Sonar Analysis') {
