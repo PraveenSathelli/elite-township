@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Template
+
+parameters:
+  - name: APP
+    required: true
+  - name: IMG
+    required: true
+  - name: TAG
+    required: true
+  - name: PROJ
+    required: true
+
+objects:
+
+  # ImageStream (needed for auto-deploy)
+  - apiVersion: image.openshift.io/v1
+    kind: ImageStream
+    metadata:
+      name: ${IMG}
+      namespace: ${PROJ}
+
+  # BuildConfig
+  - apiVersion: build.openshift.io/v1
+    kind: BuildConfig
+    metadata:
+      name: ${APP}
+      labels:
+        app: ${APP}
+    spec:
+      source:
+        type: Binary
+
+      strategy:
+        type: Source
+        sourceStrategy:
+          from:
+            kind: DockerImage
+            name: registry.access.redhat.com/ubi9/openjdk-17
+
+      output:
+        to:
+          kind: ImageStreamTag
+          name: ${IMG}:${TAG}
+
+      triggers:
+        - type: ConfigChange

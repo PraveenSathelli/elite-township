@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: Template
+
+parameters:
+  - name: APP
+    required: true
+  - name: PROJ
+    required: true
+
+objects:
+
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: ${APP}
+      namespace: ${PROJ}
+      labels:
+        app: ${APP}
+
+    spec:
+      ports:
+        - name: http
+          port: 8081
+          targetPort: 8081
+
+      selector:
+        app: ${APP}
+        deploymentconfig: ${APP}
+
+  - apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      name: ${APP}
+      namespace: ${PROJ}
+      labels:
+        app: ${APP}
+
+    spec:
+      to:
+        kind: Service
+        name: ${APP}
+
+      port:
+        targetPort: http

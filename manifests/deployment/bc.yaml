@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: Template
+
+parameters:
+  - description: App Name
+    displayName: App Name
+    name: APP
+    required: true
+  - name: REG
+    description:  Registry
+    displayName: Registry
+    required: true
+  - name: TAG
+    description: Release Tag
+    displayName: Tag
+    required: true
+  - name: IMG
+    description: Image Name
+    displayName: IMG
+    required: true
+  - name: AIT
+    description: AIT Name
+    displayName: AIT
+    required: true
+  - description: Project Name
+    displayName: PROJ
+    name: PROJ
+    required: true
+
+objects:
+  - apiVersion: v1
+    kind: BuildConfig
+    metadata:
+      name: ${APP}
+      labels:
+        application: ${APP}
+
+    spec:
+      resources:
+        limits:
+          ephemeral-storage: 4Gi
+        requests:
+          ephemeral-storage: 512Mi
+
+      output:
+        to:
+          kind: DockerImage
+          name: ${REG}/${AIT}/${IMG}:${TAG}
+        pushSecret:
+          name: registry-nonprod
+
+      source:
+        type: Binary
+        binary:
+          asFile: ""
+
+      strategy:
+        type: Source
+        sourceStrategy:
+          forcePull: true
+          from:
+            kind: DockerImage
+            name: registry-eng.sdi.corp.bankusa.com/bac/openjdk17-rhel9:latest

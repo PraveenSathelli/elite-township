@@ -1,0 +1,108 @@
+apiVersion: v1
+kind: Template
+objects:
+  - apiVersion: v1
+    kind: DeploymentConfig
+    metadata:
+      labels:
+        app: ${APP}
+      name: ${APP}
+    spec:
+      replicas: 1
+      selector:
+        app: ${APP}
+        deploymentconfig: ${APP}
+      strategy:
+        type: Rolling
+        rollingParams:
+          intervalSeconds: 1
+          maxUnavailable: 25%
+          maxSurge: 25%
+          timeoutSeconds: 600
+          updatePeriodSeconds: 1
+      template:
+        metadata:
+#          annotations:
+#            splunk.com/nonprod-index: 1234_ABCD
+#            splunk.com/sourcetype: abc-service-dev
+          labels:
+            app: ${APP}
+            deploymentconfig: ${APP}
+        spec:
+          containers:
+              image: ${REG}/${AIT}/${IMG}:${TAG}
+              imagePullPolicy: Always
+              name: ${APP}
+              ports:
+                - containerPort: 8081
+                  protocol: TCP
+              env:
+                - name: ORDER_AUTH_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: order-auth-client-keys
+                      key: order.client.key
+                - name: SPRING_PROFILES_ACTIVE
+                  valueFrom:
+                    configMapKeyRef:
+                      name: order-service.deployment
+                      key: spring.profiles.active
+                - name: JAVA_APP_JAR
+                  valueFrom:
+                    configMapKeyRef:
+                      name: order-service.deployment
+                      key: java.app.jar
+                - name: GC_MAX_METASPACE_SIZE
+                  value: '256'
+                - name: SPRING_DATASOURCE_PASSWORD_FROM_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: order-service-db-password
+                      key: spring.datasource.password
+                - name: JAVA_OPTIONS
+                  value: '-Duser.timezone=UTC'
+                - name: FLYWAY_OUTOFORDER
+                  value: '-Dspring.flyway.outOfOrder=true'
+                - name: LOG4JEXPLIOT
+                  value: -Dlog4j2.formatMsgNoLookups=true
+                - name: MANAGEMENT_HEALTH_MAIL_ENABLED
+                  valueFrom:
+                    secretKeyRef:
+                      name: order-service-mail-health
+                      key: management.health.mail.enabled
+                - name: SPRING_JPA_PROPERTIES_HIBERNATE_ID_DB_STRCTURE_NAMING_STRATEGY
+                  value: legacy
+                - name: SPRING_JPA_PROPERTIES_HIBERNATE_SHOW-SQL
+                  value: 'true'
+                - name: SPRING_FLYWAY_ENABLED
+                  value: 'false'
+          resources : {}
+          terminationMessagePath: /dev/termination-log
+          dnsPolicy: ClusterFirst
+          restartPolicy: Always
+          securityContext: {}
+          terminationGracePeriodSeconds: 30
+      test: false
+      triggers:
+        - type: ConfigChange
+parameters:
+  - description: App Name
+    displayName: App Name
+    name: APP
+    required: true
+  - name: REG
+    description:  Registry
+    displayName: Registry
+    required: true
+  - name: TAG
+    description: Release Tag
+    displayName: Tag
+    required: true
+  - name: IMG
+    description: Image Name
+    displayName: IMG
+    required: true
+  - name: AIT
+    description: AIT Name
+    displayName: AIT
+    required: true
