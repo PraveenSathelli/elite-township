@@ -63,7 +63,9 @@ pipeline {
                                 server: server
                             )
 
-                            rtMaven.run pom: 'pom.xml', goals: 'clean deploy -DskipTests'
+                         withEnv(["MAVEN_OPTS=-Dmaven.repo.local=/var/jenkins_home/.m2/repository"]) {
+                                        rtMaven.run pom: 'pom.xml', goals: 'clean deploy -DskipTests'
+                                    }
                         }
                     }
                 }
