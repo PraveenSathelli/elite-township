@@ -48,7 +48,8 @@ pipeline {
                         -Dsonar.login=$SONAR_TOKEN \
                         -Dsonar.projectName=eliteTownship \
                         -Dsonar.projectKey=eliteTownship \
-                        -Dmaven.repo.local=/var/jenkins_home/.m2/repository
+                        -Dmaven.repo.local=/var/jenkins_home/.m2/repository \
+                        -Dsonar.userHome=/var/jenkins_home/.sonar
                     '''
                 }
             }
