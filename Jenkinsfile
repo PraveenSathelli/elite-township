@@ -16,7 +16,7 @@ pipeline {
 
         APP  = "elite-app"
         IMG  = "elite-app"
-        TAG  = "latest"
+        TAG  = ${BUILD_NUMBER}
         PROJ = "praveensathelli11-dev"
     }
 
@@ -139,32 +139,17 @@ stage('Package JAR') {
             steps {
                 sh '''
                   export PATH=$PATH:/tmp
-                  oc process -f manifests/deployment/updated/bc.yaml -p APP=$APP -p IMG=$IMG -p TAG=$TAG -p PROJ=$PROJ | oc apply -f - \
+                   oc process -f manifests/deployment/updated/bc.yaml \
+                             -p APP=$APP -p IMG=$IMG -p TAG=$TAG -p PROJ=$PROJ | oc apply -f -
 
-                  oc process -f manifests/deployment/updated/dc.yaml -p APP=$APP -p IMG=$IMG -p TAG=$TAG -p PROJ=$PROJ | oc apply -f - \
+                   oc process -f manifests/deployment/updated/dc.yaml \
+                             -p APP=$APP -p IMG=$IMG -p TAG=$TAG -p PROJ=$PROJ | oc apply -f -
 
-                   oc process -f manifests/deployment/updated/config.yaml -p APP=$APP -p PROJ=$PROJ | oc apply -f -
+                   oc process -f manifests/deployment/updated/config.yaml \
+                             -p APP=$APP -p PROJ=$PROJ | oc apply -f -
                 '''
             }
         }
-
-//         stage('Apply DeploymentConfig') {
-//             steps {
-//                 sh '''
-//                   export PATH=$PATH:/tmp
-//
-//                 '''
-//             }
-//         }
-
-//         stage('Apply Service & Route') {
-//             steps {
-//                 sh '''
-//                   export PATH=$PATH:/tmp
-//
-//                 '''
-//             }
-//         }
 
         stage('Build Image from JAR') {
             steps {
@@ -176,13 +161,12 @@ stage('Package JAR') {
             }
         }
 
-        stage('Verify Deployment') {
+        stage('Trigger Deployment') {
             steps {
                 sh '''
                   export PATH=$PATH:/tmp
-                  oc get pods
-                  oc get svc
-                  oc get route
+                   oc set image deployment/$APP $APP=$REG/$AIT/$IMG:$TAG
+                   oc rollout status deployment/$APP
                 '''
             }
         }
