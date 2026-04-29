@@ -57,7 +57,7 @@ pipeline {
               retry(2) {
                 withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                     sh '''
-                        mvn clean verify sonar:sonar \
+                        mvn verify sonar:sonar \
                         -Dsonar.host.url=http://sonarqube-praveensathelli11-dev.apps.rm1.0a51.p1.openshiftapps.com \
                         -Dsonar.login=$SONAR_TOKEN \
                         -Dsonar.projectName=eliteTownship \
@@ -98,7 +98,7 @@ stage('Package JAR') {
                                    )
 
                                 withEnv(["MAVEN_OPTS=-Dmaven.repo.local=/var/jenkins_home/.m2/repository"]) {
-                                               rtMaven.run pom: 'pom.xml', goals: 'clean deploy -DskipTests'
+                                               rtMaven.run pom: 'pom.xml', goals: 'deploy -DskipTests'
                                            }
                                }
                            }
@@ -169,7 +169,8 @@ stage('Package JAR') {
             steps {
                 sh '''
                   export PATH=$PATH:/tmp
-                  oc start-build $APP --from-file=target/*.jar --follow
+                  JAR_FILE=$(ls target/*.jar | head -n 1)
+                  oc start-build $APP --from-file=$JAR_FILE --follow
                 '''
             }
         }

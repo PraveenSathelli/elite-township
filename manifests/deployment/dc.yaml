@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Template
 objects:
   - apiVersion: v1
-    kind: DeploymentConfig
+    kind: Deployment
     metadata:
       labels:
         app: ${APP}
@@ -37,45 +37,10 @@ objects:
                 - containerPort: 8081
                   protocol: TCP
               env:
-                - name: ORDER_AUTH_SECRET
-                  valueFrom:
-                    secretKeyRef:
-                      name: order-auth-client-keys
-                      key: order.client.key
-                - name: SPRING_PROFILES_ACTIVE
-                  valueFrom:
-                    configMapKeyRef:
-                      name: order-service.deployment
-                      key: spring.profiles.active
-                - name: JAVA_APP_JAR
-                  valueFrom:
-                    configMapKeyRef:
-                      name: order-service.deployment
-                      key: java.app.jar
                 - name: GC_MAX_METASPACE_SIZE
                   value: '256'
-                - name: SPRING_DATASOURCE_PASSWORD_FROM_SECRET
-                  valueFrom:
-                    secretKeyRef:
-                      name: order-service-db-password
-                      key: spring.datasource.password
                 - name: JAVA_OPTIONS
                   value: '-Duser.timezone=UTC'
-                - name: FLYWAY_OUTOFORDER
-                  value: '-Dspring.flyway.outOfOrder=true'
-                - name: LOG4JEXPLIOT
-                  value: -Dlog4j2.formatMsgNoLookups=true
-                - name: MANAGEMENT_HEALTH_MAIL_ENABLED
-                  valueFrom:
-                    secretKeyRef:
-                      name: order-service-mail-health
-                      key: management.health.mail.enabled
-                - name: SPRING_JPA_PROPERTIES_HIBERNATE_ID_DB_STRCTURE_NAMING_STRATEGY
-                  value: legacy
-                - name: SPRING_JPA_PROPERTIES_HIBERNATE_SHOW-SQL
-                  value: 'true'
-                - name: SPRING_FLYWAY_ENABLED
-                  value: 'false'
           resources : {}
           terminationMessagePath: /dev/termination-log
           dnsPolicy: ClusterFirst
@@ -83,8 +48,6 @@ objects:
           securityContext: {}
           terminationGracePeriodSeconds: 30
       test: false
-      triggers:
-        - type: ConfigChange
 parameters:
   - description: App Name
     displayName: App Name
