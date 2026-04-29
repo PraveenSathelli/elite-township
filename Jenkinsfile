@@ -28,13 +28,15 @@ pipeline {
 //                     credentialsId: 'bed3ccd3-a099-4fcc-9aeb-2d953cc24ac8',
 //                     poll: false,
 //                     url: 'https://github.com/PraveenSathelli/elite-township.git'
-  def branch = env.BRANCH_NAME ?: 'master'
+                     script {
+                      def branch = env.BRANCH_NAME ?: 'master'
 
-                    echo "Building branch: ${branch}"
+                      echo "Building branch: ${branch}"
 
-                    git branch: branch,
-                        credentialsId: 'bed3ccd3-a099-4fcc-9aeb-2d953cc24ac8',
-                        url: 'https://github.com/PraveenSathelli/elite-township.git'
+                      git branch: branch,
+                          credentialsId: 'bed3ccd3-a099-4fcc-9aeb-2d953cc24ac8',
+                          url: 'https://github.com/PraveenSathelli/elite-township.git'
+                  }
             }
         }
 
