@@ -69,29 +69,33 @@ pipeline {
         }
 
         stage('Publish to Artifactory') {
-            steps {
-                script {
-                    def server = Artifactory.server('jfrog-config')
-                    def rtMaven = Artifactory.newMavenBuild()
-                    rtMaven.tool = 'Maven-3'
+                           steps {
+                               script {
+                                   def server = Artifactory.server('jfrog-config')
 
-                    rtMaven.deployer(
-                        releaseRepo: 'libs-release-local',
-                        snapshotRepo: 'libs-snapshot-local',
-                        server: server
-                    )
+                                   def rtMaven = Artifactory.newMavenBuild()
+                                   rtMaven.tool = 'Maven-3'
 
-                    rtMaven.resolver(
-                        releaseRepo: 'libs-release',
-                        snapshotRepo: 'libs-snapshot',
-                        server: server
-                    )
+                                   rtMaven.deployer(
+                                       releaseRepo: 'libs-release-local',
+                                       snapshotRepo: 'libs-snapshot-local',
+                                       server: server
+                                   )
 
-                    rtMaven.run pom: 'pom.xml', goals: 'clean deploy -DskipTests'
-                }
-            }
-        }
+                                   rtMaven.resolver(
+                                       releaseRepo: 'libs-release',
+                                       snapshotRepo: 'libs-snapshot',
+                                       server: server
+                                   )
 
+                                withEnv(["MAVEN_OPTS=-Dmaven.repo.local=/var/jenkins_home/.m2/repository"]) {
+                                               rtMaven.run pom: 'pom.xml', goals: 'clean deploy -DskipTests'
+                                           }
+                               }
+                           }
+                       }
+
+                       
         stage('Install oc CLI') {
             steps {
                 sh '''
