@@ -54,6 +54,7 @@ pipeline {
 
         stage('Build & Sonar Analysis') {
             steps {
+              retry(2) {
                 withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                     sh '''
                         mvn clean verify sonar:sonar \
@@ -64,6 +65,7 @@ pipeline {
                         -Dmaven.repo.local=/var/jenkins_home/.m2/repository \
                         -Dsonar.userHome=/var/jenkins_home/.sonar
                     '''
+                }
                 }
             }
         }
@@ -95,7 +97,7 @@ pipeline {
                            }
                        }
 
-                       
+
         stage('Install oc CLI') {
             steps {
                 sh '''
