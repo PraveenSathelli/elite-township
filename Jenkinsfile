@@ -16,7 +16,7 @@ pipeline {
 
         APP  = "elite-app"
         IMG  = "elite-app"
-        TAG  = ${BUILD_NUMBER}
+        TAG  = env.BUILD_NUMBER
         PROJ = "praveensathelli11-dev"
     }
 
