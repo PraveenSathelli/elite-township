@@ -114,7 +114,7 @@ stage('Package JAR') {
                   mv oc kubectl /tmp/
 
                   export PATH=$PATH:/tmp
-                  oc version
+                  oc version --client
                 '''
             }
         }
@@ -135,7 +135,7 @@ stage('Package JAR') {
             }
         }
 
-        stage('Apply BuildConfig') {
+        stage('Apply Openshift Build') {
             steps {
                 sh '''
                   export PATH=$PATH:/tmp
