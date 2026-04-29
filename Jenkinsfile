@@ -69,7 +69,14 @@ pipeline {
                 }
             }
         }
-
+stage('Package JAR') {
+    steps {
+        sh '''
+          mvn package -DskipTests \
+          -Dmaven.repo.local=/var/jenkins_home/.m2/repository
+        '''
+    }
+}
         stage('Publish to Artifactory') {
                            steps {
                                script {
