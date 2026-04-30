@@ -97,8 +97,31 @@ stage('Package JAR') {
                                        server: server
                                    )
 
+                                rtMaven.buildName = "${APP}"
+                                rtMaven.buildNumber = "${env.BUILD_NUMBER}"
+
                                 withEnv(["MAVEN_OPTS=-Dmaven.repo.local=/var/jenkins_home/.m2/repository"]) {
-                                               rtMaven.run pom: 'pom.xml', goals: 'deploy -DskipTests'
+                                                            def buildInfo =    rtMaven.run pom: 'pom.xml', goals: 'deploy -DskipTests'
+
+                                                             // ✅ capture env
+                                                             buildInfo.env.capture = true
+
+                                                             // ✅ add git info (important)
+                                                             buildInfo.vcs = [
+                                                                 url: "https://github.com/PraveenSathelli/elite-township.git",
+                                                                 revision: env.GIT_COMMIT,
+                                                                 branch: env.BRANCH_NAME
+                                                             ]
+
+                                                             // ✅ publish
+                                                             server.publishBuildInfo(buildInfo)
+
+                                                             // ✅ optional cleanup
+                                                             server.discardBuilds([
+                                                                 buildName: "${APP}",
+                                                                 maxBuilds: 20,
+                                                                 deleteArtifacts: true
+                                                             ])
                                            }
                                }
                            }

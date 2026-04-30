@@ -34,8 +34,11 @@ public class DemoController {
     @PostMapping("/orders/addMultiple")
     public ResponseEntity<List<Order>> addMultipleOrder(@RequestBody Order order) {
         int added = 0;
+        Order objOrder =null;
         List<Order> orders = new ArrayList<>();
         while(added < 10) {
+            objOrder = new Order();
+            objOrder.setDescription(order.getDescription());
             try
             {
                 Thread.sleep(200); // Simulate delay
@@ -44,7 +47,7 @@ public class DemoController {
             {
                 Thread.currentThread().interrupt();
             }
-            order.setId( orderService.getAllOrders().size() + 1); // Simple way to generate unique ID
+            order.setId( added+ 1); // Simple way to generate unique ID
             order.setDescription(order.getDescription() + " #" + (LocalDateTime.now())); // Append number to description for uniqueness
             orders.add( orderService.addOrder(order));
             added++;
