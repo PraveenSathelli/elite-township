@@ -77,55 +77,60 @@ stage('Package JAR') {
         '''
     }
 }
-        stage('Publish to Artifactory') {
-                           steps {
-                               script {
-                                   def server = Artifactory.server('jfrog-config')
+       stage('Publish to Artifactory') {
+           steps {
+               script {
+                   def server = Artifactory.server('jfrog-config')
 
-                                   def rtMaven = Artifactory.newMavenBuild()
-                                   rtMaven.tool = 'Maven-3'
+                   def rtMaven = Artifactory.newMavenBuild()
+                   rtMaven.tool = 'Maven-3'
 
-                                   rtMaven.deployer(
-                                       releaseRepo: 'libs-release-local',
-                                       snapshotRepo: 'libs-snapshot-local',
-                                       server: server
-                                   )
+                   rtMaven.deployer(
+                       releaseRepo: 'libs-release-local',
+                       snapshotRepo: 'libs-snapshot-local',
+                       server: server
+                   )
 
-                                   rtMaven.resolver(
-                                       releaseRepo: 'libs-release',
-                                       snapshotRepo: 'libs-snapshot',
-                                       server: server
-                                   )
+                   rtMaven.resolver(
+                       releaseRepo: 'libs-release',
+                       snapshotRepo: 'libs-snapshot',
+                       server: server
+                   )
 
-                                rtMaven.buildName = "${APP}"
-                                rtMaven.buildNumber = "${env.BUILD_NUMBER}"
+                   withEnv(["MAVEN_OPTS=-Dmaven.repo.local=/var/jenkins_home/.m2/repository"]) {
 
-                                withEnv(["MAVEN_OPTS=-Dmaven.repo.local=/var/jenkins_home/.m2/repository"]) {
-                                                            def buildInfo =    rtMaven.run pom: 'pom.xml', goals: 'deploy -DskipTests'
+                       def buildInfo = rtMaven.run(
+                           pom: 'pom.xml',
+                           goals: 'deploy -DskipTests'
+                       )
 
-                                                             // ✅ capture env
-                                                             buildInfo.env.capture = true
+                       // ✅ set build info correctly
+                       buildInfo.name = "${APP}"
+                       buildInfo.number = "${env.BUILD_NUMBER}"
 
-                                                             // ✅ add git info (important)
-                                                             buildInfo.vcs = [
-                                                                 url: "https://github.com/PraveenSathelli/elite-township.git",
-                                                                 revision: env.GIT_COMMIT,
-                                                                 branch: env.BRANCH_NAME
-                                                             ]
+                       // ✅ capture environment variables
+                       buildInfo.env.capture = true
 
-                                                             // ✅ publish
-                                                             server.publishBuildInfo(buildInfo)
+                       // ✅ attach Git info
+                       buildInfo.vcs = [
+                           url: "https://github.com/PraveenSathelli/elite-township.git",
+                           revision: env.GIT_COMMIT,
+                           branch: env.BRANCH_NAME
+                       ]
 
-                                                             // ✅ optional cleanup
-                                                             server.discardBuilds([
-                                                                 buildName: "${APP}",
-                                                                 maxBuilds: 20,
-                                                                 deleteArtifacts: true
-                                                             ])
-                                           }
-                               }
-                           }
-                       }
+                       // ✅ publish build info
+                       server.publishBuildInfo(buildInfo)
+
+                       // ✅ retention (optional)
+                       server.discardBuilds([
+                           buildName: "${APP}",
+                           maxBuilds: 20,
+                           deleteArtifacts: true
+                       ])
+                   }
+               }
+           }
+       }
 
 
         stage('Install oc CLI') {
