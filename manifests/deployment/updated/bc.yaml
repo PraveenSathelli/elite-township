@@ -36,7 +36,7 @@ objects:
         sourceStrategy:
           from:
             kind: DockerImage
-            name: registry.access.redhat.com/ubi9/openjdk-17
+            name: registry.access.redhat.com/ubi9/openjdk-21
 
       output:
         to:
