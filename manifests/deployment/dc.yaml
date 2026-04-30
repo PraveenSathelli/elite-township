@@ -1,63 +1,71 @@
 apiVersion: v1
 kind: Template
-
-parameters:
-  - name: APP
-    required: true
-  - name: REG
-    required: true
-  - name: TAG
-    required: true
-  - name: IMG
-    required: true
-  - name: AIT
-    required: true
-
 objects:
-  - apiVersion: apps/v1
+  - apiVersion: v1
     kind: Deployment
-
     metadata:
-      name: ${APP}
       labels:
         app: ${APP}
-
+      name: ${APP}
     spec:
       replicas: 1
-
       selector:
-        matchLabels:
-          app: ${APP}
-
+        app: ${APP}
+        deploymentconfig: ${APP}
       strategy:
-        type: RollingUpdate
-        rollingUpdate:
+        type: Rolling
+        rollingParams:
+          intervalSeconds: 1
           maxUnavailable: 25%
           maxSurge: 25%
-
+          timeoutSeconds: 600
+          updatePeriodSeconds: 1
       template:
         metadata:
+#          annotations:
+#            splunk.com/nonprod-index: 1234_ABCD
+#            splunk.com/sourcetype: abc-service-dev
           labels:
             app: ${APP}
-
+            deploymentconfig: ${APP}
         spec:
           containers:
-            - name: ${APP}
               image: ${REG}/${AIT}/${IMG}:${TAG}
               imagePullPolicy: Always
-
+              name: ${APP}
               ports:
                 - containerPort: 8081
                   protocol: TCP
-
               env:
                 - name: GC_MAX_METASPACE_SIZE
-                  value: "256"
-
+                  value: '256'
                 - name: JAVA_OPTIONS
-                  value: "-Duser.timezone=UTC"
-
-              resources: {}
-
+                  value: '-Duser.timezone=UTC'
+          resources : {}
+          terminationMessagePath: /dev/termination-log
+          dnsPolicy: ClusterFirst
           restartPolicy: Always
+          securityContext: {}
           terminationGracePeriodSeconds: 30
+      test: false
+parameters:
+  - description: App Name
+    displayName: App Name
+    name: APP
+    required: true
+  - name: REG
+    description:  Registry
+    displayName: Registry
+    required: true
+  - name: TAG
+    description: Release Tag
+    displayName: Tag
+    required: true
+  - name: IMG
+    description: Image Name
+    displayName: IMG
+    required: true
+  - name: AIT
+    description: AIT Name
+    displayName: AIT
+    required: true

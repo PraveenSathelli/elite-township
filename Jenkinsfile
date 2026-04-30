@@ -13,10 +13,10 @@ pipeline {
         OC_VERSION = "latest"
         OC_HOME = "/tmp"
         KUBECONFIG = "/tmp/kubeconfig"
-
+        REG  = "image-registry.openshift-image-registry.svc:5000"
         APP  = "elite-app"
         IMG  = "elite-app"
-        TAG  = env.BUILD_NUMBER
+        TAG = "${env.BUILD_NUMBER}"
         PROJ = "praveensathelli11-dev"
     }
 
@@ -143,7 +143,7 @@ stage('Package JAR') {
                              -p APP=$APP -p IMG=$IMG -p TAG=$TAG -p PROJ=$PROJ | oc apply -f -
 
                    oc process -f manifests/deployment/updated/dc.yaml \
-                             -p APP=$APP -p IMG=$IMG -p TAG=$TAG -p PROJ=$PROJ | oc apply -f -
+                             -p APP=$APP -p REG=$REG -p IMG=$IMG -p TAG=$TAG -p PROJ=$PROJ | oc apply -f -
 
                    oc process -f manifests/deployment/updated/config.yaml \
                              -p APP=$APP -p PROJ=$PROJ | oc apply -f -
@@ -165,7 +165,7 @@ stage('Package JAR') {
             steps {
                 sh '''
                   export PATH=$PATH:/tmp
-                   oc set image deployment/$APP $APP=$REG/$AIT/$IMG:$TAG
+                   oc set image deployment/$APP $APP=$REG/$PROJ/$IMG:$TAG
                    oc rollout status deployment/$APP
                 '''
             }

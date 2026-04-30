@@ -4,20 +4,21 @@ kind: Template
 parameters:
   - name: APP
     required: true
-  - name: IMG
+  - name: PROJ
+    required: true
+  - name: REG
     required: true
   - name: TAG
     required: true
-  - name: PROJ
+  - name: IMG
     required: true
 
 objects:
+  - apiVersion: apps/v1
+    kind: Deployment
 
-  - apiVersion: apps.openshift.io/v1
-    kind: DeploymentConfig
     metadata:
       name: ${APP}
-      namespace: ${PROJ}
       labels:
         app: ${APP}
 
@@ -25,56 +26,38 @@ objects:
       replicas: 1
 
       selector:
-        app: ${APP}
-        deploymentconfig: ${APP}
+        matchLabels:
+          app: ${APP}
 
       strategy:
-        type: Rolling
+        type: RollingUpdate
+        rollingUpdate:
+          maxUnavailable: 25%
+          maxSurge: 25%
 
       template:
         metadata:
           labels:
             app: ${APP}
-            deploymentconfig: ${APP}
 
         spec:
           containers:
             - name: ${APP}
-              image: image-registry.openshift-image-registry.svc:5000/${PROJ}/${IMG}:${TAG}
+              image: ${REG}/${PROJ}/${IMG}:${TAG}
               imagePullPolicy: Always
 
               ports:
                 - containerPort: 8081
+                  protocol: TCP
 
               env:
-                - name: SPRING_PROFILES_ACTIVE
-                  value: dev
+                - name: GC_MAX_METASPACE_SIZE
+                  value: "256"
 
                 - name: JAVA_OPTIONS
                   value: "-Duser.timezone=UTC"
 
-              readinessProbe:
-                httpGet:
-                  path: /actuator/health
-                  port: 8081
-                initialDelaySeconds: 30
-                periodSeconds: 10
+              resources: {}
 
-              livenessProbe:
-                httpGet:
-                  path: /actuator/health
-                  port: 8081
-                initialDelaySeconds: 60
-                periodSeconds: 20
-
-      triggers:
-        - type: ConfigChange
-
-        - type: ImageChange
-          imageChangeParams:
-            automatic: true
-            containerNames:
-              - ${APP}
-            from:
-              kind: ImageStreamTag
-              name: ${IMG}:${TAG}
+          restartPolicy: Always
+          terminationGracePeriodSeconds: 30
