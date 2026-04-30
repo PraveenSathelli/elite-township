@@ -20,12 +20,11 @@ objects:
     spec:
       ports:
         - name: http
-          port: 8081
-          targetPort: 8081
+          port: 8080
+          targetPort: 8080
 
       selector:
         app: ${APP}
-        deploymentconfig: ${APP}
 
   - apiVersion: route.openshift.io/v1
     kind: Route
