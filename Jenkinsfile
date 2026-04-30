@@ -99,34 +99,9 @@ stage('Package JAR') {
 
                    withEnv(["MAVEN_OPTS=-Dmaven.repo.local=/var/jenkins_home/.m2/repository"]) {
 
-                       def buildInfo = rtMaven.run(
-                           pom: 'pom.xml',
-                           goals: 'deploy -DskipTests'
-                       )
-
-                       // ✅ set build info correctly
-                       buildInfo.name = "${APP}"
-                       buildInfo.number = "${env.BUILD_NUMBER}"
-
-                       // ✅ capture environment variables
-                       buildInfo.env.capture = true
-
-                       // ✅ attach Git info
-                       buildInfo.vcs = [
-                           url: "https://github.com/PraveenSathelli/elite-township.git",
-                           revision: env.GIT_COMMIT,
-                           branch: env.BRANCH_NAME
-                       ]
-
-                       // ✅ publish build info
+                      def buildInfo = rtMaven.run pom: 'pom.xml', goals: 'deploy -DskipTests'
+                       // ✅ ONLY THIS
                        server.publishBuildInfo(buildInfo)
-
-                       // ✅ retention (optional)
-                       server.discardBuilds([
-                           buildName: "${APP}",
-                           maxBuilds: 20,
-                           deleteArtifacts: true
-                       ])
                    }
                }
            }
